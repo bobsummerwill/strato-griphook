@@ -32,18 +32,35 @@ Griphook lets AI assistants like Claude interact with STRATO. Through 67 MCP too
 
 ## Quick Start
 
-```bash
-npm install
-npm run build
-npm run login   # Opens browser for OAuth authentication
-npm start       # Start the MCP server
+A public testnet instance is available (mainnet coming soon).
+
+**For OAuth-capable clients** (VS Code, Windsurf, OpenCode):
+```json
+{
+  "mcpServers": {
+    "griphook": { "url": "https://griphook-testnet.strato.nexus/mcp" }
+  }
+}
 ```
 
-Credentials are stored in `~/.griphook/credentials.json`.
+**For non-OAuth clients** (Cursor, Cline, Claude Code):
 
-## Using with Claude Code
+1. Visit https://griphook-testnet.strato.nexus/login to sign in and get a token
+2. Add to your MCP config:
+```json
+{
+  "mcpServers": {
+    "griphook": {
+      "url": "https://griphook-testnet.strato.nexus/mcp",
+      "headers": { "Authorization": "Bearer <your-token>" }
+    }
+  }
+}
+```
 
-Add to your project's `.mcp.json` or Claude Code settings:
+## Running Your Own Instance
+
+To run your own Griphook server, add to `.mcp.json`:
 
 ```json
 {
@@ -55,7 +72,7 @@ Add to your project's `.mcp.json` or Claude Code settings:
         "OAUTH_CLIENT_ID": "your-client-id",
         "OAUTH_CLIENT_SECRET": "your-client-secret",
         "OPENID_DISCOVERY_URL": "https://keycloak.blockapps.net/auth/realms/mercata/.well-known/openid-configuration",
-        "STRATO_API_BASE_URL": "https://your-strato-instance/api"
+        "STRATO_API_BASE_URL": "https://buildtest.mercata-testnet.blockapps.net/api"
       }
     }
   }
@@ -91,25 +108,17 @@ Add to your project's `.mcp.json` or Claude Code settings:
 | `GRIPHOOK_HOSTED_CLIENT_ID` | OAuth client ID for hosted mode |
 | `GRIPHOOK_HOSTED_CLIENT_SECRET` | OAuth client secret for hosted mode |
 
-## Hosted Mode
+## Deploying a Hosted Instance
 
 Set `GRIPHOOK_PUBLIC_URL` to enable multi-user deployment with per-request authentication:
 
 ```bash
-GRIPHOOK_PUBLIC_URL=https://griphook.example.com npm start
+GRIPHOOK_PUBLIC_URL=https://griphook-testnet.strato.nexus npm start
 ```
 
-The server exposes `/.well-known/oauth-protected-resource` (RFC 9728). MCP clients with OAuth support authenticate automatically:
+The server exposes `/.well-known/oauth-protected-resource` (RFC 9728). MCP clients with OAuth support authenticate automatically. For clients without OAuth support, use `griphook token` to get a Bearer token.
 
-```json
-{
-  "mcpServers": {
-    "griphook": { "url": "https://griphook.example.com/mcp" }
-  }
-}
-```
-
-For clients without OAuth support, use `griphook token` to get a Bearer token.
+See [deployment guide](https://github.com/strato-net/strato-griphook/issues/1) for full setup including Keycloak, DNS, nginx, and SSL configuration.
 
 ## Troubleshooting
 
