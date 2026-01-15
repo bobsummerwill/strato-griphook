@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError, Method } from "axios";
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { GriphookConfig } from "./config.js";
 import { OAuthClient } from "./auth.js";
+import { getRequestAccessToken } from "./requestContext.js";
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
@@ -25,8 +26,10 @@ export class GriphookClient {
     const url = path.startsWith("/") ? path : `/${path}`;
     const headers: Record<string, string> = { ...(options?.headers ?? {}) };
 
-    // Get fresh token for each request (uses cache internally)
-    const token = await this.oauth.getAccessToken();
+    // In hosted mode, use the request-scoped access token from the middleware.
+    // Fall back to local OAuth credentials for CLI/stdio mode.
+    const requestToken = getRequestAccessToken();
+    const token = requestToken ?? await this.oauth.getAccessToken();
     headers["x-user-access-token"] = token;
     headers["authorization"] = `Bearer ${token}`;
 

@@ -10,6 +10,7 @@ import { loadConfig, GriphookConfig } from "./config.js";
 import { GriphookClient } from "./client.js";
 import { registerTools } from "./tools.js";
 import { registerResources } from "./resources.js";
+import { requestContext } from "./requestContext.js";
 import axios from "axios";
 
 const require = createRequire(import.meta.url);
@@ -1074,8 +1075,19 @@ async function startHttpServer(config: ReturnType<typeof loadConfig>) {
     console.log(`OAuth metadata: ${config.hosted.publicUrl}/.well-known/oauth-protected-resource`);
   }
 
-  app.post(config.http.path, (req, res) => transport.handleRequest(req, res, (req as any).body));
-  app.get(config.http.ssePath, (req, res) => transport.handleRequest(req, res));
+  // Wrap MCP request handlers with request context to pass the access token
+  app.post(config.http.path, (req, res) => {
+    const accessToken = (req as any).stratoToken;
+    requestContext.run({ accessToken }, () => {
+      transport.handleRequest(req, res, (req as any).body);
+    });
+  });
+  app.get(config.http.ssePath, (req, res) => {
+    const accessToken = (req as any).stratoToken;
+    requestContext.run({ accessToken }, () => {
+      transport.handleRequest(req, res);
+    });
+  });
 
   const listener = app.listen(config.http.port, config.http.host, () => {
     console.log(
