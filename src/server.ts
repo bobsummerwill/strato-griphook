@@ -325,6 +325,17 @@ const loginPageHtml = (error?: string) => `
     </div>
 
     <div class="panel">
+      <div class="panel-header">[ AUTHENTICATE ]</div>
+      <div class="panel-body">
+        <p>> Sign in with your STRATO account to get an authentication token.</p>
+        <p>> After signing in, you'll receive setup instructions for your AI tool.</p>
+        <p style="margin-top: 16px;">
+          <a href="/login/start" class="btn">[ SIGN IN WITH STRATO ]</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
       <div class="panel-header">[ CAPABILITIES ]</div>
       <div class="panel-body">
         <div class="feature-grid">
@@ -369,17 +380,6 @@ const loginPageHtml = (error?: string) => `
           <span class="tool-badge">Kilo Code</span>
           <span class="tool-badge">VS Code Copilot</span>
         </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">[ AUTHENTICATE ]</div>
-      <div class="panel-body">
-        <p>> Sign in with your STRATO account to get an authentication token.</p>
-        <p>> After signing in, you'll receive setup instructions for your AI tool.</p>
-        <p style="margin-top: 16px;">
-          <a href="/login/start" class="btn">[ SIGN IN WITH STRATO ]</a>
-        </p>
       </div>
     </div>
 
