@@ -372,13 +372,13 @@ const loginPageHtml = (error?: string) => `
       <div class="panel-body">
         <p>> Compatible with MCP-enabled AI coding assistants:</p>
         <div class="tools-list">
-          <span class="tool-badge">Claude Code</span>
           <span class="tool-badge">Cursor</span>
-          <span class="tool-badge">VS Code Copilot</span>
+          <span class="tool-badge">Claude Code</span>
+          <span class="tool-badge">Codex</span>
+          <span class="tool-badge">Kilo Code</span>
           <span class="tool-badge">Cline</span>
           <span class="tool-badge">OpenCode</span>
-          <span class="tool-badge">Kilo Code</span>
-          <span class="tool-badge">Codex</span>
+          <span class="tool-badge">VS Code Copilot</span>
         </div>
       </div>
     </div>
@@ -646,31 +646,16 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
         <p class="tool-note">Select your AI coding tool:</p>
 
         <div class="tabs">
-          <button class="tab active" onclick="showTab('claude-code')">Claude Code</button>
-          <button class="tab" onclick="showTab('cursor')">Cursor</button>
-          <button class="tab" onclick="showTab('vscode-copilot')">VS Code Copilot</button>
+          <button class="tab active" onclick="showTab('cursor')">Cursor</button>
+          <button class="tab" onclick="showTab('claude-code')">Claude Code</button>
+          <button class="tab" onclick="showTab('codex')">Codex</button>
+          <button class="tab" onclick="showTab('kilo-code')">Kilo Code</button>
           <button class="tab" onclick="showTab('cline')">Cline</button>
           <button class="tab" onclick="showTab('opencode')">OpenCode</button>
-          <button class="tab" onclick="showTab('kilo-code')">Kilo Code</button>
-          <button class="tab" onclick="showTab('codex')">Codex</button>
+          <button class="tab" onclick="showTab('vscode-copilot')">VS Code Copilot</button>
         </div>
 
-        <div id="claude-code" class="tab-content active">
-          <p class="tool-note">Add to <code>.mcp.json</code> in project root, or <code>~/.claude.json</code> for global:</p>
-          <pre><code>{
-  "mcpServers": {
-    "griphook": {
-      "type": "http",
-      "url": "${publicUrl}/mcp",
-      "headers": {
-        "Authorization": "Bearer ${refreshToken}"
-      }
-    }
-  }
-}</code></pre>
-        </div>
-
-        <div id="cursor" class="tab-content">
+        <div id="cursor" class="tab-content active">
           <p class="tool-note">Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):</p>
           <pre><code>{
   "mcpServers": {
@@ -686,10 +671,10 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
           <p class="tool-note" style="margin-top: 12px; color: #996600;">⚠ Known issue: Tools may appear in sidebar but not be callable in chat. Try global config and restart Cursor.</p>
         </div>
 
-        <div id="vscode-copilot" class="tab-content">
-          <p class="tool-note">Add to <code>.vscode/mcp.json</code> in project root:</p>
+        <div id="claude-code" class="tab-content">
+          <p class="tool-note">Add to <code>.mcp.json</code> in project root, or <code>~/.claude.json</code> for global:</p>
           <pre><code>{
-  "servers": {
+  "mcpServers": {
     "griphook": {
       "type": "http",
       "url": "${publicUrl}/mcp",
@@ -699,7 +684,32 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
-          <p class="tool-note" style="margin-top: 12px;">Requires VS Code 1.102+ with Agent Mode enabled (<code>chat.agent.enabled</code>).</p>
+        </div>
+
+        <div id="codex" class="tab-content">
+          <p class="tool-note">Add to <code>~/.codex/config.toml</code>:</p>
+          <pre><code>[mcp_servers.griphook]
+type = "http"
+url = "${publicUrl}/mcp"
+
+[mcp_servers.griphook.headers]
+Authorization = "Bearer ${refreshToken}"</code></pre>
+          <p class="tool-note" style="margin-top: 12px;">Or use: <code>codex mcp add griphook ${publicUrl}/mcp</code></p>
+        </div>
+
+        <div id="kilo-code" class="tab-content">
+          <p class="tool-note">Add to <code>.kilocode/mcp.json</code> in project root:</p>
+          <pre><code>{
+  "mcpServers": {
+    "griphook": {
+      "type": "streamable-http",
+      "url": "${publicUrl}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${refreshToken}"
+      }
+    }
+  }
+}</code></pre>
         </div>
 
         <div id="cline" class="tab-content">
@@ -732,12 +742,12 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
 }</code></pre>
         </div>
 
-        <div id="kilo-code" class="tab-content">
-          <p class="tool-note">Add to <code>.kilocode/mcp.json</code> in project root:</p>
+        <div id="vscode-copilot" class="tab-content">
+          <p class="tool-note">Add to <code>.vscode/mcp.json</code> in project root:</p>
           <pre><code>{
-  "mcpServers": {
+  "servers": {
     "griphook": {
-      "type": "streamable-http",
+      "type": "http",
       "url": "${publicUrl}/mcp",
       "headers": {
         "Authorization": "Bearer ${refreshToken}"
@@ -745,17 +755,7 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
-        </div>
-
-        <div id="codex" class="tab-content">
-          <p class="tool-note">Add to <code>~/.codex/config.toml</code>:</p>
-          <pre><code>[mcp_servers.griphook]
-type = "http"
-url = "${publicUrl}/mcp"
-
-[mcp_servers.griphook.headers]
-Authorization = "Bearer ${refreshToken}"</code></pre>
-          <p class="tool-note" style="margin-top: 12px;">Or use: <code>codex mcp add griphook ${publicUrl}/mcp</code></p>
+          <p class="tool-note" style="margin-top: 12px;">Requires VS Code 1.102+ with Agent Mode enabled (<code>chat.agent.enabled</code>).</p>
         </div>
 
         <div class="info-box">

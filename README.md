@@ -32,9 +32,14 @@ Griphook lets AI assistants like Claude interact with STRATO. Through 67 MCP too
 
 ## Quick Start
 
-A public testnet instance is available (mainnet coming soon).
+Public hosted instances are available for both production and testnet:
 
-1. Visit https://griphook-testnet.strato.nexus/login to sign in and get a token
+| Environment | Login URL | MCP Endpoint |
+|-------------|-----------|--------------|
+| **Production** | https://griphook.strato.nexus/login | `https://griphook.strato.nexus/mcp` |
+| **Testnet** | https://griphook-testnet.strato.nexus/login | `https://griphook-testnet.strato.nexus/mcp` |
+
+1. Visit the login URL to sign in and get a token
 2. Add to your MCP config (e.g., `.mcp.json` for Claude Code):
 
 ```json
@@ -42,7 +47,7 @@ A public testnet instance is available (mainnet coming soon).
   "mcpServers": {
     "griphook": {
       "type": "http",
-      "url": "https://griphook-testnet.strato.nexus/mcp",
+      "url": "https://griphook.strato.nexus/mcp",
       "headers": { "Authorization": "Bearer <your-token>" }
     }
   }
@@ -128,23 +133,63 @@ Griphook works with any MCP-enabled AI coding tool. All tools use the same authe
 
 | Tool | Config File | Type Field |
 |------|-------------|------------|
-| **Claude Code** | `.mcp.json` or `~/.claude.json` | `http` |
 | **Cursor** | `.cursor/mcp.json` or `~/.cursor/mcp.json` | `http` |
-| **VS Code Copilot** | `.vscode/mcp.json` | `http` |
+| **Claude Code** | `.mcp.json` or `~/.claude.json` | `http` |
+| **Codex** | `~/.codex/config.toml` | `http` |
+| **Kilo Code** | `.kilocode/mcp.json` | `streamable-http` |
 | **Cline** | `cline_mcp_settings.json` | `streamableHttp` |
 | **OpenCode** | `opencode.json` or `~/.config/opencode/opencode.json` | `remote` |
-| **Kilo Code** | `.kilocode/mcp.json` | `streamable-http` |
-| **Codex** | `~/.codex/config.toml` | `http` |
+| **VS Code Copilot** | `.vscode/mcp.json` | `http` |
 
 ### Example Configurations
 
-**Claude Code / Cursor / VS Code Copilot** (`.mcp.json`):
+**Cursor** (`.cursor/mcp.json` or `~/.cursor/mcp.json`):
 ```json
 {
   "mcpServers": {
     "griphook": {
       "type": "http",
-      "url": "https://griphook-testnet.strato.nexus/mcp",
+      "url": "https://griphook.strato.nexus/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-token>"
+      }
+    }
+  }
+}
+```
+
+**Claude Code** (`.mcp.json` or `~/.claude.json`):
+```json
+{
+  "mcpServers": {
+    "griphook": {
+      "type": "http",
+      "url": "https://griphook.strato.nexus/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-token>"
+      }
+    }
+  }
+}
+```
+
+**Codex** (`~/.codex/config.toml`):
+```toml
+[mcp_servers.griphook]
+type = "http"
+url = "https://griphook.strato.nexus/mcp"
+
+[mcp_servers.griphook.headers]
+Authorization = "Bearer <your-token>"
+```
+
+**Kilo Code** (`.kilocode/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "griphook": {
+      "type": "streamable-http",
+      "url": "https://griphook.strato.nexus/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -159,7 +204,7 @@ Griphook works with any MCP-enabled AI coding tool. All tools use the same authe
   "mcpServers": {
     "griphook": {
       "type": "streamableHttp",
-      "url": "https://griphook-testnet.strato.nexus/mcp",
+      "url": "https://griphook.strato.nexus/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -174,7 +219,7 @@ Griphook works with any MCP-enabled AI coding tool. All tools use the same authe
   "mcp": {
     "griphook": {
       "type": "remote",
-      "url": "https://griphook-testnet.strato.nexus/mcp",
+      "url": "https://griphook.strato.nexus/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -183,29 +228,19 @@ Griphook works with any MCP-enabled AI coding tool. All tools use the same authe
 }
 ```
 
-**Kilo Code** (`.kilocode/mcp.json`):
+**VS Code Copilot** (`.vscode/mcp.json`):
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "griphook": {
-      "type": "streamable-http",
-      "url": "https://griphook-testnet.strato.nexus/mcp",
+      "type": "http",
+      "url": "https://griphook.strato.nexus/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
     }
   }
 }
-```
-
-**Codex** (`~/.codex/config.toml`):
-```toml
-[mcp_servers.griphook]
-type = "http"
-url = "https://griphook-testnet.strato.nexus/mcp"
-
-[mcp_servers.griphook.headers]
-Authorization = "Bearer <your-token>"
 ```
 
 ### Known Issues
