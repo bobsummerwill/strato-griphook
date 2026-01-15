@@ -86,23 +86,205 @@ const loginPageHtml = (error?: string) => `
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Griphook Login</title>
+  <title>Griphook - MCP Server for STRATO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #fafafa; }
-    .ascii-art { font-family: monospace; font-size: 8px; line-height: 1.1; white-space: pre; color: #0066cc; margin-bottom: 30px; overflow-x: auto; }
-    @media (min-width: 600px) { .ascii-art { font-size: 10px; } }
-    h1 { color: #333; margin-top: 0; }
-    .btn { display: inline-block; padding: 14px 28px; background: #0066cc; color: white; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; }
-    .btn:hover { background: #0052a3; }
-    .error { background: #fee; border: 1px solid #c00; padding: 12px; border-radius: 6px; margin-bottom: 20px; color: #900; }
-    p { line-height: 1.6; color: #555; }
-    .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .subtitle { color: #666; font-size: 14px; margin-top: 8px; }
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 0.95; }
+      94% { opacity: 0.9; }
+      96% { opacity: 0.95; }
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0; }
+      50% { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0; }
+    }
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      animation: flicker 4s infinite;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(0, 255, 0, 0.1);
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+      z-index: 1001;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .ascii-art {
+      font-size: 6px;
+      line-height: 1.0;
+      white-space: pre;
+      color: #00ff00;
+      margin-bottom: 24px;
+      text-align: center;
+      text-shadow: 0 0 10px #00ff00;
+      animation: glow 2s ease-in-out infinite;
+    }
+    @media (min-width: 700px) { .ascii-art { font-size: 8px; } }
+    .panel {
+      border: 1px solid #00ff00;
+      background: rgba(0, 20, 0, 0.8);
+      margin-bottom: 16px;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.05);
+    }
+    .panel-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #00ff00;
+      color: #00ff00;
+      font-weight: bold;
+      font-size: 14px;
+      text-shadow: 0 0 5px #00ff00;
+      background: rgba(0, 255, 0, 0.1);
+    }
+    .panel-body {
+      padding: 16px;
+    }
+    .panel-body p {
+      margin: 0 0 12px 0;
+      line-height: 1.6;
+      color: #00cc00;
+    }
+    .panel-body p:last-child { margin-bottom: 0; }
+    a { color: #00ff00; text-decoration: underline; }
+    a:hover { color: #66ff66; text-shadow: 0 0 5px #00ff00; }
+    .highlight { color: #00ff00; text-shadow: 0 0 5px #00ff00; }
+    .error-box {
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid #ff0000;
+      color: #ff4444;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      text-shadow: 0 0 5px #ff0000;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: transparent;
+      color: #00ff00;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      font-family: inherit;
+      border: 1px solid #00ff00;
+      cursor: pointer;
+      text-shadow: 0 0 5px #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #00ff00;
+      color: #000;
+      text-shadow: none;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .feature {
+      background: rgba(0, 255, 0, 0.05);
+      border: 1px solid #004400;
+      padding: 12px;
+    }
+    .feature-title {
+      color: #00ff00;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 13px;
+      text-shadow: 0 0 3px #00ff00;
+    }
+    .feature-desc {
+      color: #009900;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .tools-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .tool-badge {
+      background: transparent;
+      border: 1px solid #006600;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: #00aa00;
+    }
+    .stats {
+      display: flex;
+      gap: 32px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #006600;
+      text-transform: uppercase;
+    }
+    .footer {
+      text-align: center;
+      padding: 16px;
+      color: #006600;
+      font-size: 11px;
+    }
+    .footer a { color: #006600; text-decoration: none; }
+    .footer a:hover { color: #00aa00; }
+    .blink { animation: blink 1s step-end infinite; }
+    .cursor { color: #00ff00; }
   </style>
 </head>
 <body>
-  <div class="ascii-art">███████╗████████╗██████╗  █████╗ ████████╗ ██████╗
+  <div class="container">
+    <div class="ascii-art">███████╗████████╗██████╗  █████╗ ████████╗ ██████╗
 ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝██╔═══██╗
 ███████╗   ██║   ██████╔╝███████║   ██║   ██║   ██║
 ╚════██║   ██║   ██╔══██╗██╔══██║   ██║   ██║   ██║
@@ -116,12 +298,93 @@ const loginPageHtml = (error?: string) => `
 ╚██████╔╝██║  ██║██║██║     ██║  ██║╚██████╔╝╚██████╔╝██║  ██╗
  ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝</div>
 
-  <div class="card">
-    <h1>Login</h1>
-    <p class="subtitle">MCP Server for STRATO Blockchain</p>
-    ${error ? `<div class="error">${error}</div>` : ""}
-    <p>Sign in to get a token for use with AI coding assistants like Claude Code, Cursor, Cline, Windsurf, and others.</p>
-    <p><a href="/login/start" class="btn">Sign in with STRATO</a></p>
+    ${error ? `<div class="error-box">> ERROR: ${error}</div>` : ""}
+
+    <div class="panel">
+      <div class="panel-header">[ ABOUT ]</div>
+      <div class="panel-body">
+        <p>> Griphook is an <span class="highlight">MCP (Model Context Protocol) server</span> that connects AI coding assistants to the <a href="https://strato.nexus" target="_blank">STRATO blockchain</a>.<span class="blink cursor">_</span></p>
+        <p>> Your AI can read on-chain data, execute DeFi operations, and interact with the full STRATO ecosystem directly from your IDE.</p>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value">67</div>
+            <div class="stat-label">MCP Tools</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Protocols</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">∞</div>
+            <div class="stat-label">Possibilities</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">[ CAPABILITIES ]</div>
+      <div class="panel-body">
+        <div class="feature-grid">
+          <div class="feature">
+            <div class="feature-title">Token Management</div>
+            <div class="feature-desc">Query balances, transfer tokens, check prices, manage approvals</div>
+          </div>
+          <div class="feature">
+            <div class="feature-title">DEX / Swap</div>
+            <div class="feature-desc">Execute swaps, provide liquidity, create pools, view LP positions</div>
+          </div>
+          <div class="feature">
+            <div class="feature-title">Lending Markets</div>
+            <div class="feature-desc">Supply collateral, borrow USDST, repay loans, manage positions</div>
+          </div>
+          <div class="feature">
+            <div class="feature-title">CDP Vaults</div>
+            <div class="feature-desc">Open vaults, mint stablecoins, manage collateral ratios</div>
+          </div>
+          <div class="feature">
+            <div class="feature-title">Cross-Chain Bridge</div>
+            <div class="feature-desc">Bridge assets between STRATO and external networks</div>
+          </div>
+          <div class="feature">
+            <div class="feature-title">Rewards & Governance</div>
+            <div class="feature-desc">Claim CATA rewards, stake tokens, vote on proposals</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">[ SUPPORTED TOOLS ]</div>
+      <div class="panel-body">
+        <p>> Compatible with any MCP-enabled AI coding assistant:</p>
+        <div class="tools-list">
+          <span class="tool-badge">Claude Code</span>
+          <span class="tool-badge">Cursor</span>
+          <span class="tool-badge">Cline</span>
+          <span class="tool-badge">Windsurf</span>
+          <span class="tool-badge">OpenCode</span>
+          <span class="tool-badge">Kilo Code</span>
+          <span class="tool-badge">VS Code Copilot</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">[ AUTHENTICATE ]</div>
+      <div class="panel-body">
+        <p>> Sign in with your STRATO account to get an authentication token.</p>
+        <p>> After signing in, you'll receive setup instructions for your AI tool.</p>
+        <p style="margin-top: 16px;">
+          <a href="/login/start" class="btn">[ SIGN IN WITH STRATO ]</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="https://strato.nexus">strato.nexus</a> · <a href="https://github.com/strato-net/strato-griphook">GitHub</a> · <a href="https://modelcontextprotocol.io">MCP Protocol</a>
+    </div>
   </div>
 </body>
 </html>
@@ -131,36 +394,224 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Griphook - Your Token</title>
+  <title>Griphook - Authentication Complete</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #fafafa; }
-    .ascii-art { font-family: monospace; font-size: 8px; line-height: 1.1; white-space: pre; color: #0066cc; margin-bottom: 30px; overflow-x: auto; }
-    @media (min-width: 600px) { .ascii-art { font-size: 10px; } }
-    h1 { color: #333; margin-top: 0; }
-    h2 { margin-top: 24px; color: #333; font-size: 18px; }
-    .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .token-box { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 16px; word-break: break-all; font-family: monospace; font-size: 11px; max-height: 120px; overflow-y: auto; }
-    .btn { display: inline-block; padding: 10px 18px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; margin-right: 8px; margin-top: 12px; }
-    .btn:hover { background: #0052a3; }
-    .btn-secondary { background: #6c757d; }
-    .btn-secondary:hover { background: #545b62; }
-    .success { color: #080; font-weight: 500; }
-    .info { background: #d1ecf1; border: 1px solid #bee5eb; padding: 12px; border-radius: 6px; margin-top: 16px; color: #0c5460; font-size: 14px; }
-    pre { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; margin: 0; }
-    code { font-family: 'SF Mono', Monaco, 'Courier New', monospace; }
-    .tabs { display: flex; gap: 0; border-bottom: 2px solid #e9ecef; margin-bottom: 16px; }
-    .tab { padding: 10px 16px; cursor: pointer; border: none; background: none; font-size: 14px; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-    .tab:hover { color: #333; }
-    .tab.active { color: #0066cc; border-bottom-color: #0066cc; font-weight: 500; }
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 0.95; }
+      94% { opacity: 0.9; }
+      96% { opacity: 0.95; }
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0; }
+      50% { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0; }
+    }
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      animation: flicker 4s infinite;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(0, 255, 0, 0.1);
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+      z-index: 1001;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .ascii-art {
+      font-size: 6px;
+      line-height: 1.0;
+      white-space: pre;
+      color: #00ff00;
+      margin-bottom: 24px;
+      text-align: center;
+      text-shadow: 0 0 10px #00ff00;
+      animation: glow 2s ease-in-out infinite;
+    }
+    @media (min-width: 700px) { .ascii-art { font-size: 8px; } }
+    .panel {
+      border: 1px solid #00ff00;
+      background: rgba(0, 20, 0, 0.8);
+      margin-bottom: 16px;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.05);
+    }
+    .panel-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #00ff00;
+      color: #00ff00;
+      font-weight: bold;
+      font-size: 14px;
+      text-shadow: 0 0 5px #00ff00;
+      background: rgba(0, 255, 0, 0.1);
+    }
+    .panel-body {
+      padding: 16px;
+    }
+    .panel-body p {
+      margin: 0 0 12px 0;
+      line-height: 1.6;
+      color: #00cc00;
+    }
+    .panel-body p:last-child { margin-bottom: 0; }
+    a { color: #00ff00; text-decoration: underline; }
+    a:hover { color: #66ff66; text-shadow: 0 0 5px #00ff00; }
+    .success { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+    .token-box {
+      background: #001a00;
+      border: 1px solid #006600;
+      padding: 12px;
+      word-break: break-all;
+      font-size: 10px;
+      color: #00cc00;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: transparent;
+      color: #00ff00;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+      font-family: inherit;
+      border: 1px solid #00ff00;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-top: 12px;
+      text-shadow: 0 0 5px #00ff00;
+      box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #00ff00;
+      color: #000;
+      text-shadow: none;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    }
+    .btn-secondary {
+      border-color: #006600;
+      color: #00aa00;
+      text-shadow: 0 0 3px #006600;
+      box-shadow: 0 0 3px rgba(0, 255, 0, 0.2);
+    }
+    .btn-secondary:hover {
+      background: #006600;
+      color: #00ff00;
+    }
+    .expiry {
+      font-size: 12px;
+      color: #009900;
+      margin-top: 12px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      border-bottom: 1px solid #006600;
+      margin-bottom: 16px;
+    }
+    .tab {
+      padding: 8px 14px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-family: inherit;
+      color: #006600;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: #00aa00; }
+    .tab.active {
+      color: #00ff00;
+      border-bottom-color: #00ff00;
+      text-shadow: 0 0 5px #00ff00;
+    }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .tool-note { font-size: 13px; color: #666; margin-bottom: 12px; }
-    .expiry { font-size: 13px; color: #666; margin-top: 8px; }
+    .tool-note {
+      font-size: 12px;
+      color: #009900;
+      margin-bottom: 12px;
+    }
+    .tool-note code {
+      color: #00ff00;
+      background: #001a00;
+      padding: 2px 6px;
+    }
+    pre {
+      background: #001a00;
+      border: 1px solid #004400;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 11px;
+      margin: 0;
+      color: #00cc00;
+    }
+    code { font-family: inherit; }
+    .info-box {
+      background: rgba(0, 255, 0, 0.05);
+      border: 1px solid #004400;
+      padding: 12px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #009900;
+    }
+    .info-box strong { color: #00cc00; }
+    .footer {
+      text-align: center;
+      padding: 16px;
+      color: #006600;
+      font-size: 11px;
+    }
+    .footer a { color: #006600; }
+    .footer a:hover { color: #00aa00; }
+    .blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
   </style>
 </head>
 <body>
-  <div class="ascii-art">███████╗████████╗██████╗  █████╗ ████████╗ ██████╗
+  <div class="container">
+    <div class="ascii-art">███████╗████████╗██████╗  █████╗ ████████╗ ██████╗
 ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝██╔═══██╗
 ███████╗   ██║   ██████╔╝███████║   ██║   ██║   ██║
 ╚════██║   ██║   ██╔══██╗██╔══██║   ██║   ██║   ██║
@@ -174,32 +625,36 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
 ╚██████╔╝██║  ██║██║██║     ██║  ██║╚██████╔╝╚██████╔╝██║  ██╗
  ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝</div>
 
-  <div class="card">
-    <h1>Authentication Successful</h1>
-    <p class="success">✓ You're signed in and ready to connect your AI assistant.</p>
+    <div class="panel">
+      <div class="panel-header">[ AUTHENTICATION COMPLETE ]</div>
+      <div class="panel-body">
+        <p class="success">> STATUS: CONNECTED<span class="blink">_</span></p>
+        <p>You're authenticated and ready to connect your AI coding assistant to STRATO.</p>
 
-    <h2>Your Token</h2>
-    <div class="token-box" id="token">${refreshToken}</div>
-    <button class="btn" onclick="copyToken()">Copy Token</button>
-    <button class="btn btn-secondary" onclick="downloadConfig()">Download .mcp.json</button>
-    <p class="expiry">Valid for approximately <strong>${expiresInDays} days</strong>. The server handles refresh automatically.</p>
-  </div>
-
-  <div class="card">
-    <h2>Setup Instructions</h2>
-    <p class="tool-note">Choose your AI coding tool below for specific setup instructions.</p>
-
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('claude-code')">Claude Code</button>
-      <button class="tab" onclick="showTab('cursor')">Cursor</button>
-      <button class="tab" onclick="showTab('cline')">Cline</button>
-      <button class="tab" onclick="showTab('windsurf')">Windsurf</button>
-      <button class="tab" onclick="showTab('opencode')">OpenCode</button>
+        <p style="margin-top: 16px; color: #00aa00;">YOUR TOKEN:</p>
+        <div class="token-box" id="token">${refreshToken}</div>
+        <button class="btn" onclick="copyToken()">[ COPY TOKEN ]</button>
+        <button class="btn btn-secondary" onclick="downloadConfig()">[ DOWNLOAD .mcp.json ]</button>
+        <p class="expiry">> Token valid for ~${expiresInDays} days. Server handles refresh automatically.</p>
+      </div>
     </div>
 
-    <div id="claude-code" class="tab-content active">
-      <p class="tool-note">Add to <code>.mcp.json</code> in your project root, or <code>~/.claude.json</code> for global access:</p>
-      <pre><code>{
+    <div class="panel">
+      <div class="panel-header">[ SETUP INSTRUCTIONS ]</div>
+      <div class="panel-body">
+        <p class="tool-note">Select your AI coding tool:</p>
+
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('claude-code')">Claude Code</button>
+          <button class="tab" onclick="showTab('cursor')">Cursor</button>
+          <button class="tab" onclick="showTab('cline')">Cline</button>
+          <button class="tab" onclick="showTab('windsurf')">Windsurf</button>
+          <button class="tab" onclick="showTab('opencode')">OpenCode</button>
+        </div>
+
+        <div id="claude-code" class="tab-content active">
+          <p class="tool-note">Add to <code>.mcp.json</code> in project root, or <code>~/.claude.json</code> for global:</p>
+          <pre><code>{
   "mcpServers": {
     "griphook": {
       "type": "http",
@@ -210,11 +665,11 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
-    </div>
+        </div>
 
-    <div id="cursor" class="tab-content">
-      <p class="tool-note">Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):</p>
-      <pre><code>{
+        <div id="cursor" class="tab-content">
+          <p class="tool-note">Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):</p>
+          <pre><code>{
   "mcpServers": {
     "griphook": {
       "type": "http",
@@ -225,11 +680,11 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
-    </div>
+        </div>
 
-    <div id="cline" class="tab-content">
-      <p class="tool-note">Open VS Code → Cline sidebar → MCP Servers icon → Configure → Edit <code>cline_mcp_settings.json</code>:</p>
-      <pre><code>{
+        <div id="cline" class="tab-content">
+          <p class="tool-note">VS Code → Cline sidebar → MCP Servers → Configure → <code>cline_mcp_settings.json</code>:</p>
+          <pre><code>{
   "mcpServers": {
     "griphook": {
       "type": "sse",
@@ -240,11 +695,11 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
-    </div>
+        </div>
 
-    <div id="windsurf" class="tab-content">
-      <p class="tool-note">Open Windsurf Settings → Cascade → MCP Servers, or edit <code>~/.codeium/windsurf/mcp_config.json</code>:</p>
-      <pre><code>{
+        <div id="windsurf" class="tab-content">
+          <p class="tool-note">Settings → Cascade → MCP, or edit <code>~/.codeium/windsurf/mcp_config.json</code>:</p>
+          <pre><code>{
   "mcpServers": {
     "griphook": {
       "type": "sse",
@@ -255,11 +710,11 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
-    </div>
+        </div>
 
-    <div id="opencode" class="tab-content">
-      <p class="tool-note">Add to <code>~/.config/opencode/opencode.json</code> (global) or <code>opencode.json</code> (project):</p>
-      <pre><code>{
+        <div id="opencode" class="tab-content">
+          <p class="tool-note">Add to <code>~/.config/opencode/opencode.json</code> or <code>opencode.json</code> in project:</p>
+          <pre><code>{
   "mcp": {
     "griphook": {
       "type": "remote",
@@ -270,10 +725,16 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
+        </div>
+
+        <div class="info-box">
+          <strong>TIP:</strong> Click "DOWNLOAD .mcp.json" for a ready-to-use config file.
+        </div>
+      </div>
     </div>
 
-    <div class="info">
-      <strong>Tip:</strong> Click "Download .mcp.json" above to get a ready-to-use config file for Claude Code and Cursor.
+    <div class="footer">
+      <a href="https://strato.nexus">strato.nexus</a> · <a href="https://github.com/strato-net/strato-griphook">GitHub</a> · <a href="https://modelcontextprotocol.io">MCP Protocol</a>
     </div>
   </div>
 
@@ -281,8 +742,8 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     function copyToken() {
       const token = document.getElementById('token').textContent;
       navigator.clipboard.writeText(token).then(() => {
-        event.target.textContent = 'Copied!';
-        setTimeout(() => event.target.textContent = 'Copy Token', 2000);
+        event.target.textContent = '[ COPIED! ]';
+        setTimeout(() => event.target.textContent = '[ COPY TOKEN ]', 2000);
       });
     }
 
