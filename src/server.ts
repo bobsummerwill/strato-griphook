@@ -748,13 +748,14 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
 
     function downloadConfig() {
+      const token = document.getElementById('token').textContent;
       const config = {
         mcpServers: {
           griphook: {
             type: "http",
             url: "${publicUrl}/mcp",
             headers: {
-              Authorization: "Bearer ${refreshToken}"
+              Authorization: "Bearer " + token
             }
           }
         }
@@ -914,8 +915,10 @@ async function getAccessTokenFromRefresh(
   }
 
   try {
+    console.log("[getAccessTokenFromRefresh] Fetching OIDC config from:", config.oauth.openIdDiscoveryUrl);
     const oidcConfig = await axios.get(config.oauth.openIdDiscoveryUrl, { timeout: 10000 });
     const tokenEndpoint = oidcConfig.data.token_endpoint;
+    console.log("[getAccessTokenFromRefresh] Token endpoint:", tokenEndpoint);
 
     const params = new URLSearchParams({
       grant_type: "refresh_token",
@@ -925,6 +928,9 @@ async function getAccessTokenFromRefresh(
 
     if (config.oauth.clientSecret) {
       params.set("client_secret", config.oauth.clientSecret);
+      console.log("[getAccessTokenFromRefresh] Using client_secret (length:", config.oauth.clientSecret.length, ")");
+    } else {
+      console.log("[getAccessTokenFromRefresh] WARNING: No client_secret configured");
     }
 
     const tokenResponse = await axios.post(tokenEndpoint, params.toString(), {
@@ -933,6 +939,7 @@ async function getAccessTokenFromRefresh(
     });
 
     const { access_token, expires_in } = tokenResponse.data;
+    console.log("[getAccessTokenFromRefresh] Success! Token expires in:", expires_in, "seconds");
 
     // Cache the access token
     accessTokenCache.set(cacheKey, {
@@ -944,8 +951,13 @@ async function getAccessTokenFromRefresh(
   } catch (err) {
     // Clear cache on error
     accessTokenCache.delete(cacheKey);
-    if (axios.isAxiosError(err) && err.response?.status === 400) {
-      return { error: "Refresh token is invalid or expired" };
+    if (axios.isAxiosError(err)) {
+      console.error("[getAccessTokenFromRefresh] Error:", err.response?.status, err.response?.data);
+      if (err.response?.status === 400) {
+        return { error: `Refresh token is invalid or expired: ${JSON.stringify(err.response.data)}` };
+      }
+    } else {
+      console.error("[getAccessTokenFromRefresh] Non-axios error:", err);
     }
     return { error: "Failed to exchange refresh token" };
   }
