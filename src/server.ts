@@ -635,7 +635,6 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
         <p style="margin-top: 16px; color: #00aa00;">YOUR TOKEN:</p>
         <div class="token-box" id="token">${refreshToken}</div>
         <button class="btn" onclick="copyToken()">[ COPY TOKEN ]</button>
-        <button class="btn btn-secondary" onclick="downloadConfig()">[ DOWNLOAD .mcp.json ]</button>
         <p class="expiry">> Token valid for ~${expiresInDays} days. Server handles refresh automatically.</p>
       </div>
     </div>
@@ -668,6 +667,7 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="downloadConfig('cursor')">[ DOWNLOAD mcp.json ]</button>
           <p class="tool-note" style="margin-top: 12px; color: #996600;">⚠ Known issue: Tools may appear in sidebar but not be callable in chat. Try global config and restart Cursor.</p>
         </div>
 
@@ -684,6 +684,7 @@ const tokenPageHtml = (refreshToken: string, expiresInDays: number, publicUrl: s
     }
   }
 }</code></pre>
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="downloadConfig('claude-code')">[ DOWNLOAD .mcp.json ]</button>
         </div>
 
         <div id="codex" class="tab-content">
@@ -710,6 +711,7 @@ Authorization = "Bearer ${refreshToken}"</code></pre>
     }
   }
 }</code></pre>
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="downloadConfig('kilo-code')">[ DOWNLOAD mcp.json ]</button>
         </div>
 
         <div id="cline" class="tab-content">
@@ -725,6 +727,7 @@ Authorization = "Bearer ${refreshToken}"</code></pre>
     }
   }
 }</code></pre>
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="downloadConfig('cline')">[ DOWNLOAD cline_mcp_settings.json ]</button>
         </div>
 
         <div id="opencode" class="tab-content">
@@ -740,6 +743,7 @@ Authorization = "Bearer ${refreshToken}"</code></pre>
     }
   }
 }</code></pre>
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="downloadConfig('opencode')">[ DOWNLOAD opencode.json ]</button>
         </div>
 
         <div id="vscode-copilot" class="tab-content">
@@ -755,11 +759,8 @@ Authorization = "Bearer ${refreshToken}"</code></pre>
     }
   }
 }</code></pre>
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="downloadConfig('vscode-copilot')">[ DOWNLOAD mcp.json ]</button>
           <p class="tool-note" style="margin-top: 12px;">Requires VS Code 1.102+ with Agent Mode enabled (<code>chat.agent.enabled</code>).</p>
-        </div>
-
-        <div class="info-box">
-          <strong>TIP:</strong> Click "DOWNLOAD .mcp.json" for a ready-to-use Claude Code config file.
         </div>
       </div>
     </div>
@@ -778,24 +779,41 @@ Authorization = "Bearer ${refreshToken}"</code></pre>
       });
     }
 
-    function downloadConfig() {
+    function downloadConfig(tool) {
       const token = document.getElementById('token').textContent;
-      const config = {
-        mcpServers: {
-          griphook: {
-            type: "http",
-            url: "${publicUrl}/mcp",
-            headers: {
-              Authorization: "Bearer " + token
-            }
-          }
+      const configs = {
+        'cursor': {
+          filename: 'mcp.json',
+          content: { mcpServers: { griphook: { type: "http", url: "${publicUrl}/mcp", headers: { Authorization: "Bearer " + token } } } }
+        },
+        'claude-code': {
+          filename: '.mcp.json',
+          content: { mcpServers: { griphook: { type: "http", url: "${publicUrl}/mcp", headers: { Authorization: "Bearer " + token } } } }
+        },
+        'kilo-code': {
+          filename: 'mcp.json',
+          content: { mcpServers: { griphook: { type: "streamable-http", url: "${publicUrl}/mcp", headers: { Authorization: "Bearer " + token } } } }
+        },
+        'cline': {
+          filename: 'cline_mcp_settings.json',
+          content: { mcpServers: { griphook: { type: "streamableHttp", url: "${publicUrl}/mcp", headers: { Authorization: "Bearer " + token } } } }
+        },
+        'opencode': {
+          filename: 'opencode.json',
+          content: { mcp: { griphook: { type: "remote", url: "${publicUrl}/mcp", headers: { Authorization: "Bearer " + token } } } }
+        },
+        'vscode-copilot': {
+          filename: 'mcp.json',
+          content: { servers: { griphook: { type: "http", url: "${publicUrl}/mcp", headers: { Authorization: "Bearer " + token } } } }
         }
       };
-      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+      const cfg = configs[tool];
+      if (!cfg) return;
+      const blob = new Blob([JSON.stringify(cfg.content, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = '.mcp.json';
+      a.download = cfg.filename;
       a.click();
       URL.revokeObjectURL(url);
     }
